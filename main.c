@@ -1,14 +1,14 @@
 #include <SFML/Graphics.hpp>
 #include <math.h>
 #include <iostream>
-#include "usefullFunctions.hpp"
+#include "usefullFunctions.h"
 
 #define SCREEN_W 1000
 #define SCREEN_H 1000
-#define TERRAIN_SIZE 16
+#define TERRAIN_SIZE 32
 
 #define ZOOM_SPEED 1.0f
-#define CAMERA_SPEED 1.0f
+#define CAMERA_SPEED 0.5f
 
 float zoomValue = 20;
 float cameraPos[2] = {0,0};
@@ -16,14 +16,27 @@ float lightSourcePos[3] = {TERRAIN_SIZE/2,TERRAIN_SIZE/2,TERRAIN_SIZE/2};
 
 unsigned short terrain3DMap[TERRAIN_SIZE][TERRAIN_SIZE][TERRAIN_SIZE];
 
-#include "terrainGenerator.hpp"
+#include "terrainGenerator.h"
 
 int main()
 {
     // Create the main window
     sf::RenderWindow app(sf::VideoMode(SCREEN_W, SCREEN_H), "isometric game");
 
-    #include "initDrawingFunctions.hpp"
+    sf::Clock clock;
+    float lastTime = 0;
+
+    sf::Font font;
+    if (!font.loadFromFile("Seven Segment.ttf"))
+    {
+        // error...
+    }
+    sf::Text text;
+    text.setFont(font);
+    text.setCharacterSize(24);
+    text.setFillColor(sf::Color::White);
+
+    #include "initDrawingFunctions.h"
 
     generatreTerrain();
 
@@ -65,7 +78,14 @@ int main()
         //render
         app.clear();
 
-        #include "drawingFunctions.hpp"
+        #include "drawingFunctions.h"
+
+        float currentTime = clock.restart().asSeconds();
+        int fps = 1.f / currentTime;
+        lastTime = currentTime;
+
+        text.setString(std::to_string(fps));
+        app.draw(text);
 
         app.display();
     }

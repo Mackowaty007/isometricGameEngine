@@ -12,3 +12,14 @@ void generatreTerrain(){
         }
     }
 }
+
+/*
+void generatreTerrain(){
+    for(int x = 0;x<TERRAIN_SIZE;x++){
+        for(int y = 0;y<TERRAIN_SIZE;y++){
+            for(int z = 0;z<TERRAIN_SIZE;z++){
+                terrain3DMap[x][y][z] = 1;
+            }
+        }
+    }
+}*/

@@ -1,4 +1,4 @@
-#include "usefullFunctions.hpp"
+#include "usefullFunctions.h"
 
 float fitBetweenMinMax(float value, float min, float max){
     if(value > max){
