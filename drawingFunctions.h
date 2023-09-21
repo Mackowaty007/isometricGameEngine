@@ -6,12 +6,15 @@
 //4-based on distance from the camera
 #define SHADING_TYPE 1
 
-#define DISABLE_BLOCK_COLORS
+//#define DISABLE_BLOCK_COLORS
 
 //this disables an optimization that doesn't draw the block that are obstructed by others in a straight line to the camera
 //#define DISABLE_PERSPECTIVE_OPTIMIZATIONS
 //TODO: make this option work
 //#define DISABLE_NEXT_TO_OBJ_OPTIMIZATIONS
+
+//this adds a boundry between wall so that it's easier to see if my optimizations work
+#define BOUNDRY_BETWEEN_VOXEL_WALLS 0.f
 
 for(int x = TERRAIN_SIZE;x>=0;x--){
     for(int y = 0;y<TERRAIN_SIZE;y++){
@@ -88,9 +91,9 @@ for(int x = TERRAIN_SIZE;x>=0;x--){
                 
 //POSITION
                 //cubePos is where the game draws the voxels on the 2D screen
-                float additionalDistanceBetweenBlocks = 10.0f;
-                float cubePos[2] = {((float)x*(zoomValue+additionalDistanceBetweenBlocks)+(float)y*(zoomValue+additionalDistanceBetweenBlocks))+cameraPos[0]*zoomValue+SCREEN_W/2,((float)y*(zoomValue/2+additionalDistanceBetweenBlocks)-(float)x*(zoomValue/2+1)-(float)z*(zoomValue+additionalDistanceBetweenBlocks))+cameraPos[1]*zoomValue+SCREEN_H/2};
-//SHADING          
+                //(the 0,866025404 value is {sqrt(3)/2} which i calculated by doing math ok? FUCK YOU!)
+                float cubePos[2] = {((float)x*0.866025404f*zoomValue+(float)y*0.866025404f*zoomValue)+cameraPos[0]*zoomValue+SCREEN_W/2,((float)y*(zoomValue/2)-(float)x*(zoomValue/2)-(float)z*(zoomValue)+cameraPos[1]*zoomValue+SCREEN_H/2)};
+//SHADING
                 //fixed shading
                 #if SHADING_TYPE==1
                     voxelRside.setFillColor(sf::Color(baseColor[0],baseColor[1],baseColor[2]));
@@ -139,6 +142,15 @@ for(int x = TERRAIN_SIZE;x>=0;x--){
                     voxelLside.setFillColor(sf::Color(baseColor[0]*distanceFromThePlayer*isLitUpMultiplyer[0], baseColor[1]*distanceFromThePlayer*isLitUpMultiplyer[0], baseColor[2]*distanceFromThePlayer*isLitUpMultiplyer[0]));
                     voxelTop.setFillColor  (sf::Color(baseColor[0]*distanceFromThePlayer*isLitUpMultiplyer[2], baseColor[1]*distanceFromThePlayer*isLitUpMultiplyer[2], baseColor[2]*distanceFromThePlayer*isLitUpMultiplyer[2]));
                 #endif
+                #if SHADING_TYPE==4
+                    //distanceFromTheCamera is here to make a cool fog effect (from 0 to 1)
+                    float distanceFromTheCamera = 1-sqrt(pow(sqrt(pow(x,2)+pow(TERRAIN_SIZE-y,2)),2) + pow(TERRAIN_SIZE-z,2))/(TERRAIN_SIZE) / (zoomValue/5);
+                    distanceFromTheCamera = fitBetweenMinMax(distanceFromTheCamera,0,1);
+
+                    voxelRside.setFillColor(sf::Color(baseColor[0]*distanceFromTheCamera, baseColor[1]*distanceFromTheCamera, baseColor[2]*distanceFromTheCamera));
+                    voxelLside.setFillColor(sf::Color(baseColor[0]*distanceFromTheCamera, baseColor[1]*distanceFromTheCamera, baseColor[2]*distanceFromTheCamera));
+                    voxelTop.setFillColor  (sf::Color(baseColor[0]*distanceFromTheCamera, baseColor[1]*distanceFromTheCamera, baseColor[2]*distanceFromTheCamera));
+                #endif
                 
 //DRAWING AND OPTIMIZATIONS
                 //check if the right side of the voxel is obstructed, if no then draw it
@@ -163,10 +175,10 @@ for(int x = TERRAIN_SIZE;x>=0;x--){
 
                     if (drawOrNot==true){
                         //draw the right side of a voxel
-                        voxelRside.setPoint(0, sf::Vector2f(cubePos[0], cubePos[1]));
-                        voxelRside.setPoint(1, sf::Vector2f(cubePos[0]+zoomValue, cubePos[1]-0.5*zoomValue));
-                        voxelRside.setPoint(2, sf::Vector2f(cubePos[0]+zoomValue, cubePos[1]+0.5*zoomValue));
-                        voxelRside.setPoint(3, sf::Vector2f(cubePos[0], cubePos[1]+zoomValue));
+                        voxelRside.setPoint(0, sf::Vector2f(cubePos[0]+zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS, cubePos[1]+zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS));
+                        voxelRside.setPoint(1, sf::Vector2f(cubePos[0]-zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS+sin(120/(180/M_PI))*zoomValue, cubePos[1]+cos(120/(180/M_PI))*zoomValue+zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS));
+                        voxelRside.setPoint(2, sf::Vector2f(cubePos[0]-zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS+sin(60/(180/M_PI))*zoomValue , cubePos[1]+cos(60/(180/M_PI)) *zoomValue-zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS));
+                        voxelRside.setPoint(3, sf::Vector2f(cubePos[0]+zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS, cubePos[1]+zoomValue-zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS));
                         app.draw(voxelRside);
                     }
                 }
@@ -193,10 +205,10 @@ for(int x = TERRAIN_SIZE;x>=0;x--){
 
                     if (drawOrNot==true){
                         //draw the left side of a voxel
-                            voxelLside.setPoint(0, sf::Vector2f(cubePos[0], cubePos[1]));
-                            voxelLside.setPoint(1, sf::Vector2f(cubePos[0], cubePos[1]+zoomValue));
-                            voxelLside.setPoint(2, sf::Vector2f(cubePos[0]-zoomValue, cubePos[1]+0.5*zoomValue));
-                            voxelLside.setPoint(3, sf::Vector2f(cubePos[0]-zoomValue, cubePos[1]-0.5*zoomValue));
+                            voxelLside.setPoint(0, sf::Vector2f(cubePos[0]-zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS,                               cubePos[1]+zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS));
+                            voxelLside.setPoint(1, sf::Vector2f(cubePos[0]-zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS,                               cubePos[1]+zoomValue-zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS));
+                            voxelLside.setPoint(2, sf::Vector2f(cubePos[0]+zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS-sin(60/(180/M_PI))*zoomValue,  cubePos[1]+cos(60/(180/M_PI))*zoomValue -zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS));
+                            voxelLside.setPoint(3, sf::Vector2f(cubePos[0]+zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS-sin(120/(180/M_PI))*zoomValue, cubePos[1]+cos(120/(180/M_PI))*zoomValue+zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS));
                             app.draw(voxelLside);
                     }
                 }
@@ -219,14 +231,23 @@ for(int x = TERRAIN_SIZE;x>=0;x--){
                             break;
                         }
                     }
+                    for (int i=1; i<TERRAIN_SIZE;i++){
+                        if(x-i >= TERRAIN_SIZE || x-i < 0 || y+i >= TERRAIN_SIZE || y+i < 0 || z+i+1 >= TERRAIN_SIZE || z+i < 0){
+                            break;
+                        }
+                        if(terrain3DMap[x-i][y+i][z+i+1] != 0){
+                            drawOrNot = false;
+                            break;
+                        }
+                    }
                     #endif
 
                     if (drawOrNot==true){
                         //draw the top of a voxel
-                            voxelTop.setPoint(0, sf::Vector2f(cubePos[0], cubePos[1]));
-                            voxelTop.setPoint(1, sf::Vector2f(cubePos[0]-zoomValue, cubePos[1]-0.5*zoomValue));
-                            voxelTop.setPoint(2, sf::Vector2f(cubePos[0], cubePos[1]-zoomValue));
-                            voxelTop.setPoint(3, sf::Vector2f(cubePos[0]+zoomValue, cubePos[1]-0.5*zoomValue));
+                            voxelTop.setPoint(0, sf::Vector2f(cubePos[0], cubePos[1]-zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS));
+                            voxelTop.setPoint(1, sf::Vector2f(cubePos[0]-sin(120/(180/M_PI))*zoomValue+zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS, cubePos[1]+cos(120/(180/M_PI))*zoomValue));
+                            voxelTop.setPoint(2, sf::Vector2f(cubePos[0], cubePos[1]-zoomValue+zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS));
+                            voxelTop.setPoint(3, sf::Vector2f(cubePos[0]+sin(60/(180/M_PI))*zoomValue-zoomValue*BOUNDRY_BETWEEN_VOXEL_WALLS, cubePos[1]-cos(60/(180/M_PI))*zoomValue));
                             app.draw(voxelTop);
                     }
                 }

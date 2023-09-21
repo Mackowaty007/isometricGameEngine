@@ -7,8 +7,8 @@
 #define SCREEN_H 1000
 #define TERRAIN_SIZE 32
 
-#define ZOOM_SPEED 1.0f
-#define CAMERA_SPEED 0.5f
+#define ZOOM_SPEED 0.02f
+#define CAMERA_SPEED 20.0f
 
 float zoomValue = 20;
 float cameraPos[2] = {0,0};
@@ -55,24 +55,24 @@ int main()
             
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
-            cameraPos[0] += CAMERA_SPEED;
+            cameraPos[0] += CAMERA_SPEED/zoomValue;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
-            cameraPos[0] -= CAMERA_SPEED;
+            cameraPos[0] -= CAMERA_SPEED/zoomValue;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-            cameraPos[1] += CAMERA_SPEED;
+            cameraPos[1] += CAMERA_SPEED/zoomValue;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
-            cameraPos[1] -= CAMERA_SPEED;
+            cameraPos[1] -= CAMERA_SPEED/zoomValue;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z)){
-            if(zoomValue < 150)
-            zoomValue += ZOOM_SPEED;
+            if(zoomValue < 400)
+            zoomValue += ZOOM_SPEED*zoomValue;
         }
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::X)){
             if(zoomValue > 2)
-            zoomValue -= ZOOM_SPEED;
+            zoomValue -= ZOOM_SPEED*zoomValue;
         }
 
         //render
